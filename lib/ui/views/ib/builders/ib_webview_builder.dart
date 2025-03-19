@@ -11,27 +11,28 @@ class IbWebViewBuilder extends MarkdownElementBuilder {
   Widget visitElementAfter(md.Element element, TextStyle? preferredStyle) {
     var textContent = element.textContent;
 
-    return Html(
-      data: textContent,
-      customRenders: {
-        tagMatcher('iframe'): CustomRender.widget(
-          widget: (RenderContext context, _) {
-            final width = MediaQuery.of(context.buildContext).size.width;
+    return Html(data: textContent, extensions: [
+      TagExtension(
+          tagsToExtend: {'iframe'},
+          builder: (extensionContext) {
+            if (extensionContext.buildContext == null) return const SizedBox();
+            final width =
+                MediaQuery.of(extensionContext.buildContext!).size.width;
             final height = (width * 9) / 16;
+            final controller = WebViewController();
+            controller
+              ..setJavaScriptMode(JavaScriptMode.unrestricted)
+              ..loadRequest(
+                  Uri.parse(element.attributes['src'] ?? 'about:blank'));
 
             return SizedBox(
               width: width,
               height: height,
-              child: WebView(
-                initialUrl: context.tree.element?.attributes['src'],
-                javascriptMode: JavascriptMode.unrestricted,
-                initialMediaPlaybackPolicy:
-                    AutoMediaPlaybackPolicy.always_allow,
+              child: WebViewWidget(
+                controller: controller,
               ),
             );
-          },
-        ),
-      },
-    );
+          }),
+    ]);
   }
 }

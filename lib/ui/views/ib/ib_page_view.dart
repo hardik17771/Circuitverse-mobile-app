@@ -143,31 +143,27 @@ class _IbPageViewState extends State<IbPageView> {
     }
   }
 
-  Widget? _buildMarkdownImage(Uri uri, String? title, String? alt) {
-    var widgets = <Widget>[];
-
-    // SVG Support
+  Widget _buildMarkdownImage(Uri uri, String? title, String? alt) {
     if (uri.toString().endsWith('.svg')) {
       var url = uri.toString();
-
       if (uri.toString().startsWith('/assets')) {
         url = EnvironmentConfig.IB_BASE_URL + url;
       }
-
-      widgets.add(SvgPicture.network(url));
+      var widgets = <Widget>[SvgPicture.network(url)];
+      if (alt != null) {
+        widgets.add(Text(alt));
+      }
+      return Column(
+        children: widgets,
+      );
     } else {
-      // Fallback to default Image Builder
-      return null;
+      // Handle non-SVG images
+      if (alt != null) {
+        return Column(children: [Image.network(uri.toString()), Text(alt)]);
+      } else {
+        return Image.network(uri.toString());
+      }
     }
-
-    // Alternate text for SVGs
-    if (alt != null) {
-      widgets.add(Text(alt));
-    }
-
-    return Column(
-      children: widgets,
-    );
   }
 
   Widget _buildMarkdown(IbMd data) {
@@ -191,9 +187,9 @@ class _IbPageViewState extends State<IbPageView> {
       data: data.content,
       selectable: _selectable,
       imageDirectory: EnvironmentConfig.IB_BASE_URL,
-      imageBuilder: _buildMarkdownImage,
       onTapLink: _onTapLink,
-      blockBuilders: {
+      imageBuilder: _buildMarkdownImage,
+      builders: {
         'h1': _headingsBuilder,
         'h2': _headingsBuilder,
         'h3': _headingsBuilder,
@@ -213,7 +209,6 @@ class _IbPageViewState extends State<IbPageView> {
         'interaction': IbInteractionBuilder(model: _model),
         'quiz': IbPopQuizBuilder(context: context, model: _model),
       },
-      builders: _inlineBuilders,
       extensionSet: md.ExtensionSet(
         [
           IbEmbedSyntax(),

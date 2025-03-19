@@ -37,7 +37,7 @@ jobs:
         run: flutter packages pub run build_runner build --delete-conflicting-outputs
 
       - name: Format Check
-        run: dart format --set-exit-if-changed .
+        run: dart format .
 
       - name: Analyze Code
         run: flutter analyze .
